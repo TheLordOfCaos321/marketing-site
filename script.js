@@ -2,9 +2,9 @@
 const MAIN_SITE_URL = 'https://woodquotepro.com/';
 const steps = [
   ['PROJETO & VISUALIZAÇÃO', 'Comece enxergando o resultado.', 'Visualize o móvel em 3D para desenvolver a ideia e apresentar o projeto com mais clareza.', 'IDEIA → PROJETO'],
-  ['PROJETO & PEÇAS', 'O conjunto começa em cada peça.', 'A geração de peças descrita na proposta conecta o desenho do móvel às informações necessárias para planejar a produção.', 'PROJETO → PEÇAS'],
+  ['PROJETO & PEÇAS', 'O conjunto começa em cada peça.', 'Transforme o desenho do móvel em informações de peças para organizar os próximos passos da produção.', 'PROJETO → PEÇAS'],
   ['PEÇAS & PLANO DE CORTE', 'Planeje antes de cortar.', 'Organize o próximo passo com o plano de corte. O aproveitamento depende das peças, dos materiais e dos parâmetros de cada projeto.', 'PEÇAS → CORTE'],
-  ['ARQUIVOS & PRODUÇÃO', 'Leve o projeto para a oficina.', 'A proposta inclui preparação de arquivos DXF para o fluxo CNC. Formatos, máquinas e disponibilidade por plano precisam ser confirmados antes da contratação.', 'ARQUIVOS → PRODUÇÃO']
+  ['ARQUIVOS & PRODUÇÃO', 'Leve o projeto para a oficina.', 'Prepare arquivos DXF para seu fluxo CNC. Confira os recursos do plano e os requisitos da sua máquina para escolher a configuração adequada ao seu trabalho.', 'ARQUIVOS → PRODUÇÃO']
 ];
 const tabs = [...document.querySelectorAll('[role="tab"]')];
 let currentStep = 0;
@@ -30,7 +30,7 @@ tabs.forEach((tab, index) => {
   });
 });
 // Forward only campaign attribution fields, never arbitrary query parameters.
-// No cookies, storage or advertising pixels are used in this preview.
+// No cookies, storage or advertising pixels are used on this marketing page.
 const source = new URLSearchParams(window.location.search);
 document.querySelectorAll('[data-main-site]').forEach(link => {
   const destination = new URL(MAIN_SITE_URL);
