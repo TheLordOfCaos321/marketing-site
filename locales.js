@@ -524,41 +524,27 @@ translations.push(...[["Teste grátis por 10 dias","Prueba gratis por 10 días",
 translations.push(...[["Projetos em movimento","Proyectos en movimiento","Projects in motion"],["Veja os ambientes executados e seus detalhes em vídeo.","Mira los espacios terminados y sus detalles en video.","Watch the completed spaces and their details on video."],["Painel, prateleiras e iluminação","Panel, repisas e iluminación","TV wall, shelves, and lighting"],["Marcenaria em pé-direito duplo","Carpintería de doble altura","Double-height woodwork"],["Seu navegador não suporta vídeo.","Tu navegador no admite video.","Your browser does not support video."]]);
 translations.push(...[["Painel com prateleiras e lareira em 3D","Panel con repisas y chimenea en 3D","3D wall with shelves and fireplace"],["Composição de painéis no projeto 3D","Composición de paneles en el proyecto 3D","Panel composition in the 3D design"],["Peças organizadas na plataforma","Piezas organizadas en la plataforma","Parts arranged in the platform"],["Painel e armários no visualizador 3D","Panel y gabinetes en el visor 3D","Wall and cabinets in the 3D viewer"],["Projetos na plataforma","Proyectos en la plataforma","Projects in the platform"],["Painel de TV e prateleiras iluminadas","Panel de TV y repisas iluminadas","TV wall and illuminated shelves"],["PROJETOS EXECUTADOS","PROYECTOS TERMINADOS","COMPLETED PROJECTS"],["Explore os ambientes, os acabamentos e os detalhes dos móveis executados.","Explora los espacios, los acabados y los detalles de los muebles fabricados.","Explore the spaces, finishes, and details of completed furniture."],["Pausar carrossel","Pausar carrusel","Pause carousel"],["Deslize para explorar","Desliza para explorar","Swipe to explore"],["Galeria de projetos executados","Galería de proyectos terminados","Completed project gallery"],["Detalhes do painel iluminado","Detalles del panel iluminado","Illuminated wall details"],["Painéis e circulação do ambiente","Paneles y circulación del espacio","Wall panels and room layout"]]);
 translations.push(...[["VEJA NA PRÁTICA","MÍRALO EN ACCIÓN","SEE IT IN ACTION"],["Acompanhe um projeto no WoodQuote Pro.","Sigue un proyecto en WoodQuote Pro.","Follow a project in WoodQuote Pro."],["Veja a criação e os ajustes de um móvel diretamente na plataforma, em uma demonstração de 5 minutos.","Mira la creación y los ajustes de un mueble directamente en la plataforma, en una demostración de 5 minutos.","Watch furniture being created and adjusted directly in the platform in a five-minute demonstration."],["Reproduzir demonstração","Reproducir demostración","Play demonstration"],["Interface apresentada em português. Use a tela cheia para acompanhar os detalhes.","Interfaz presentada en portugués. Usa la pantalla completa para ver los detalles.","The interface is shown in Portuguese. Use fullscreen to see the details."],["Ver demonstração","Ver demostración","Watch demo"],["Não foi possível iniciar o vídeo. Toque em reproduzir para tentar novamente.","No se pudo iniciar el video. Toca reproducir para intentarlo de nuevo.","The video could not start. Press play to try again."]]);
-const localeOptions = ['pt-BR', 'es-419', 'en-US'];
-const dictionary = new Map(translations.map(row => [row[0], row]));
-let activeLocale = 'pt-BR';
-window.translate = value => dictionary.get(value)?.[localeOptions.indexOf(activeLocale)] ?? value;
-const textBindings = [];
-const walker = document.createTreeWalker(document.body, NodeFilter.SHOW_TEXT);
-while (walker.nextNode()) {
-  const node = walker.currentNode;
-  if (node.parentElement.closest('script, [data-language-selector], #step-panel')) continue;
-  if (dictionary.has(node.textContent.trim())) textBindings.push([node, node.textContent]);
+const localeOptions = ['pt-BR','es-419','en-US'];
+const activeLocale = document.documentElement.lang;
+const dictionary = new Map(translations.map(row => [row[0],row]));
+window.translate = value => dictionary.get(value)?.[Math.max(0,localeOptions.indexOf(activeLocale))] ?? value;
+selectStep(currentStep);
+// Migrate existing campaign links while keeping attribution and section anchors.
+const routes = {'pt-BR':'/','es-419':'/es.html','en-US':'/en.html'};
+const incoming = new URL(window.location.href);
+const legacyLocale = incoming.searchParams.get('lang');
+if (routes[legacyLocale]) {
+ incoming.searchParams.delete('lang');
+ incoming.pathname = routes[legacyLocale];
+ if (legacyLocale !== activeLocale) window.location.replace(incoming.href);
+ else history.replaceState(null,'',incoming.href);
 }
-const attrBindings = [];
-document.querySelectorAll('[aria-label],[alt]').forEach(el => {
-  ['aria-label','alt'].forEach(attr => { const value = el.getAttribute(attr); if (dictionary.has(value)) attrBindings.push([el,attr,value]); });
+document.querySelectorAll('[data-locale]').forEach(link => {
+ const url = new URL(link.href);
+ ['utm_source','utm_medium','utm_campaign','utm_content','utm_term'].forEach(key => {
+  const value = incoming.searchParams.get(key);
+  if(value && value.length <= 300) url.searchParams.set(key,value);
+ });
+ url.hash = window.location.hash;
+ link.href = url.href;
 });
-const originalTitle = document.title;
-const metaDescription = document.querySelector('meta[name="description"]');
-const originalDescription = metaDescription.content;
-const panelNote = document.querySelector('#step-panel small');
-const originalNote = panelNote.textContent;
-function setLocale(locale, updateURL = true) {
-  activeLocale = localeOptions.includes(locale) ? locale : 'pt-BR';
-  document.documentElement.lang = activeLocale;
-  textBindings.forEach(([node, value]) => { node.textContent = value.replace(value.trim(), window.translate(value.trim())); });
-  attrBindings.forEach(([el,attr,value]) => el.setAttribute(attr,window.translate(value)));
-  document.title = window.translate(originalTitle);
-  metaDescription.content = window.translate(originalDescription);
-  panelNote.textContent = window.translate(originalNote);
-  selectStep(currentStep);
-  document.querySelectorAll('[data-locale]').forEach(button => button.setAttribute('aria-pressed', String(button.dataset.locale === activeLocale)));
-  document.querySelector('[data-language-selector]').setAttribute('aria-label', activeLocale === 'pt-BR' ? 'Selecionar idioma' : activeLocale === 'es-419' ? 'Seleccionar idioma' : 'Select language');
-  if (updateURL) {
-    const url = new URL(window.location.href); url.searchParams.set('lang',activeLocale);
-    try { history.replaceState(null,'',url); } catch (_) { /* File previews may block history updates. */ }
-  }
-}
-document.querySelectorAll('[data-locale]').forEach(button => button.addEventListener('click', () => setLocale(button.dataset.locale)));
-setLocale(new URLSearchParams(window.location.search).get('lang'),false);
